@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from area import Area
-import Image
+import Image, ImageDraw, ImageFont
 
 verticalCardsCount = 15
 horizontalCardsCount = 15
@@ -48,7 +48,15 @@ ignoredCards =  filter(lambda a: a.intersects(unusedArea), cards)
 unusedAreaPicture = im.crop((unusedArea.upperLeftPoint[0],unusedArea.upperRightPoint[1], unusedArea.lowerRightPoint[0], unusedArea.lowerRightPoint[1]))
 unusedAreaPicture.save("tmp/nocardarea.jpg", "JPEG")
 
+font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
 for (i,card) in enumerate(printableCards):
     box = (card.upperLeftPoint[0],card.upperRightPoint[1], card.lowerRightPoint[0], card.lowerRightPoint[1])
     part = im.crop(box)
+    personname = "John Doe"
+    draw = ImageDraw.Draw(part)
+    (w,h) = draw.textsize(personname, font=font)
+    pw = cardWidthPixels/2 - w/2
+    ph = cardHeightPixels/2 - h/2
+    draw.text((pw,ph), personname, font=font, fill=255)
+    del draw
     part.save("tmp/part%04i.jpg" % i, "JPEG")
