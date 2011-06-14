@@ -52,11 +52,21 @@ font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
 for (i,card) in enumerate(printableCards):
     box = (card.upperLeftPoint[0],card.upperRightPoint[1], card.lowerRightPoint[0], card.lowerRightPoint[1])
     part = im.crop(box)
+    total = 0
+    count = 0
+    for p in part.getdata():
+        total+= p
+        count+= 1
+    avg = total/count
+    if avg > 127:
+        color = 0
+    else:
+        color = 255 
     personname = "John Doe"
     draw = ImageDraw.Draw(part)
     (w,h) = draw.textsize(personname, font=font)
     pw = cardWidthPixels/2 - w/2
     ph = cardHeightPixels/2 - h/2
-    draw.text((pw,ph), personname, font=font, fill=255)
+    draw.text((pw,ph), personname, font=font, fill=color)
     del draw
     part.save("tmp/part%04i.jpg" % i, "JPEG")
