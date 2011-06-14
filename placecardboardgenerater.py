@@ -14,7 +14,8 @@ cardHeight = 2
 cardWidth = 3
 spaceBetweenCards = 0.125
 
-im = Image.open("picture.jpg")
+oim = Image.open("picture.jpg")
+im = oim.convert("L") 
 
 pictureHeight = im.size[1]
 pictureWidth = im.size[0]
