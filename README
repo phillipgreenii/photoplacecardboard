@@ -1,1 +1,5 @@
 This projects consists of the python code I used to generate the placecard board based upon an engagement picture for my wedding.
+
+Pre-reqs:
+PIL
+http://www.pythonware.com/products/pil/
