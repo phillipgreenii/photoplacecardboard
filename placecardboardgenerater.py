@@ -26,20 +26,20 @@ def parse_people(file_name,
     people.sort()
     return people
 
-def generate_cards(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels):
-    cards = []
-    for i in range(verticalCardsCount):
-        for j in range(horizontalCardsCount):
-            point = (j * cardWidthPixels, i * cardHeightPixels)
-            cards.append(Area(point, cardHeightPixels, cardWidthPixels))
-    return cards
+def generate_printing_areas(verticalAreaCount, horizontalAreaCount, areaHeightPixels, areaWidthPixels):
+    areas = []
+    for i in range(verticalAreaCount):
+        for j in range(horizontalAreaCount):
+            point = (j * areaWidthPixels, i * areaHeightPixels)
+            areas.append(Area(point, areaHeightPixels, areaWidthPixels))
+    return areas
 
-def filter_usable_cards(cards, *unusableAreas):
+def filter_usable_areas(areas, *unusableAreas):
     if len(unusableAreas) <= 0:
-        return cards
+        return areas
     else:
-        filtered_cards =  filter(lambda a: not a.intersects(unusableAreas[0]), cards)
-        return filter_usable_cards(filtered_cards, *unusableAreas[1:])
+        filtered_areas =  filter(lambda a: not a.intersects(unusableAreas[0]), areas)
+        return filter_usable_areas(filtered_areas, *unusableAreas[1:])
 
 
 #################
@@ -78,17 +78,17 @@ print "cardWidthPixels: %i" % cardWidthPixels
 people = parse_people(invitation_list_name, placecard_name_column_name='Party_Name')
 print "people count: %i" % len(people)
 
-cards = generate_cards(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels)
-print "cards count: %i" % len(cards)
+areas = generate_printing_areas(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels)
+print "areas count: %i" % len(areas)
 
-usable_cards = filter_usable_cards(cards, areaOfBrideAndGroom)
-print "usable cards count: %i" % len(usable_cards)
+usable_areas = filter_usable_areas(areas, areaOfBrideAndGroom)
+print "usable areas count: %i" % len(usable_areas)
 
 
 im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
 font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
-for (i,card) in enumerate(usable_cards):
+for (i,card) in enumerate(usable_areas):
     part = im.crop(card.box)
     total = 0
     count = 0
