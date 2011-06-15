@@ -28,17 +28,19 @@ def parse_people(file_name,
 
 def generate_printing_areas(verticalAreaCount, horizontalAreaCount, areaHeightPixels, areaWidthPixels):
     areas = []
+    counter = 0
     for i in range(verticalAreaCount):
         for j in range(horizontalAreaCount):
             point = (j * areaWidthPixels, i * areaHeightPixels)
-            areas.append(Area(point, areaHeightPixels, areaWidthPixels))
+            areas.append((counter, Area(point, areaHeightPixels, areaWidthPixels)))
+            counter += 1
     return areas
 
 def filter_usable_areas(areas, *unusableAreas):
     if len(unusableAreas) <= 0:
         return areas
     else:
-        filtered_areas =  filter(lambda a: not a.intersects(unusableAreas[0]), areas)
+        filtered_areas =  filter(lambda a: not a[1].intersects(unusableAreas[0]), areas)
         return filter_usable_areas(filtered_areas, *unusableAreas[1:])
 
 
@@ -88,7 +90,7 @@ print "usable areas count: %i" % len(usable_areas)
 im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
 font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
-for (i,card) in enumerate(usable_areas):
+for (i,card) in usable_areas:
     part = im.crop(card.box)
     total = 0
     count = 0
