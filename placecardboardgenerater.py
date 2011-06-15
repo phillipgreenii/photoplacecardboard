@@ -2,6 +2,7 @@
 
 from area import Area
 from card import Card
+from person import Person
 import Image, ImageDraw, ImageFont
 import csv
 
@@ -9,6 +10,8 @@ import csv
 ## FUNCTIONS
 
 def parse_people(file_name,
+                 first_name_column_name = "First_Name",
+                 last_name_column_name = "Last_Name",
                  accepted_column_name ="RSVP",
                  accepted_value="Accepted",
                  placecard_name_column_name="PlaceCard",
@@ -16,6 +19,8 @@ def parse_people(file_name,
     invitationListReader = csv.reader(open('invitationlist.csv', 'rb'))
     column_names = invitationListReader.next()
 
+    first_name_column_index = column_names.index(first_name_column_name)
+    last_name_column_index = column_names.index(last_name_column_name)
     accepted_column_index = column_names.index(accepted_column_name)
     placecard_name_column_index= column_names.index(placecard_name_column_name)
     table_name_column_index = column_names.index(table_name_column_name)
@@ -23,7 +28,7 @@ def parse_people(file_name,
     people = []
     for row in invitationListReader:
         if row[accepted_column_index] == accepted_value:
-            people.append((row[placecard_name_column_index], row[table_name_column_index]))
+            people.append(Person(row[first_name_column_index], row[last_name_column_index], row[placecard_name_column_index], row[table_name_column_index]))
     people.sort()
     return people
 
@@ -53,7 +58,8 @@ def generate_cards(areas, people, font):
         name = None
         table_name = None
         if person is not None:
-            name,table_name = person 
+            name =  person.placecard_name
+            table_name = person.table_name
             add_name_to_image(part, name, font)
         part.save("tmp/part%04i.jpg" % position, "JPEG")
         cards.append(Card(position,part,name, table_name))
@@ -127,4 +133,3 @@ im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
 cards = generate_cards(usable_areas, people, font)
 print "cards count: %i" % len(cards)
-
