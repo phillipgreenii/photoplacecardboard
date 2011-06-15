@@ -2,6 +2,24 @@
 
 from area import Area
 import Image, ImageDraw, ImageFont
+import csv
+
+accepted_column_name ="RSVP"
+placecard_name_column_name="Party_Name"#"PlaceCard"
+table_name_column_name="Table_Name"
+
+invitationListReader = csv.reader(open('invitationlist.csv', 'rb'))
+column_names = invitationListReader.next()
+
+accepted_column_index = column_names.index(accepted_column_name)
+placecard_name_column_index= column_names.index(placecard_name_column_name)
+table_name_column_index = column_names.index(table_name_column_name)
+
+
+for row in invitationListReader:
+    #print row[accepted_column_index]
+    if row[accepted_column_index] == 'Accepted':
+        print row[placecard_name_column_index]
 
 verticalCardsCount = 15
 horizontalCardsCount = 15
