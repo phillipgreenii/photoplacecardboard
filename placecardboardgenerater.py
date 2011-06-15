@@ -4,22 +4,28 @@ from area import Area
 import Image, ImageDraw, ImageFont
 import csv
 
-accepted_column_name ="RSVP"
-placecard_name_column_name="Party_Name"#"PlaceCard"
-table_name_column_name="Table_Name"
+def parse_people(file_name,
+                 accepted_column_name ="RSVP",
+                 accepted_value="Accepted",
+                 placecard_name_column_name="PlaceCard",
+                 table_name_column_name="Table_Name"):
+    invitationListReader = csv.reader(open('invitationlist.csv', 'rb'))
+    column_names = invitationListReader.next()
 
-invitationListReader = csv.reader(open('invitationlist.csv', 'rb'))
-column_names = invitationListReader.next()
+    accepted_column_index = column_names.index(accepted_column_name)
+    placecard_name_column_index= column_names.index(placecard_name_column_name)
+    table_name_column_index = column_names.index(table_name_column_name)
+    
+    people = []
+    for row in invitationListReader:
+        if row[accepted_column_index] == accepted_value:
+            people.append((row[placecard_name_column_index], row[table_name_column_index]))
+    people.sort()
+    return people
 
-accepted_column_index = column_names.index(accepted_column_name)
-placecard_name_column_index= column_names.index(placecard_name_column_name)
-table_name_column_index = column_names.index(table_name_column_name)
 
-
-for row in invitationListReader:
-    #print row[accepted_column_index]
-    if row[accepted_column_index] == 'Accepted':
-        print row[placecard_name_column_index]
+people = parse_people('invitationlist.csv', placecard_name_column_name='Party_Name')
+print "people count: %i" % len(people)
 
 verticalCardsCount = 15
 horizontalCardsCount = 15
