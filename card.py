@@ -9,4 +9,4 @@ class Card:
         if self.name is None:
             return "card (%i) for no one" % self.position
         else :
-            return "card (%i) for %s at %s" % (self.position, self.name, self.table_name)
+            return "card (%i) for %s at %s" % (self.position, self.name, self.table_name or "*unknown table*")

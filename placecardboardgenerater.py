@@ -6,6 +6,10 @@ from person import Person
 import Image, ImageDraw, ImageFont
 import csv
 
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib import pagesizes
+
+
 #################
 ## FUNCTIONS
 
@@ -61,8 +65,9 @@ def generate_cards(areas, people, font):
             name =  person.placecard_name
             table_name = person.table_name
             add_name_to_image(part, name, font)
-        part.save("tmp/part%04i.jpg" % position, "JPEG")
-        cards.append(Card(position,part,name, table_name))
+        imageName = "tmp/part%04i.jpg" % position
+        part.save(imageName, "JPEG") 
+        cards.append(Card(position,imageName,name, table_name))
     return cards
 
 
@@ -82,6 +87,62 @@ def determine_font_color(image):
     else:
         return 255 #WHITE 
     
+def generate_pages(cards, filename="placecards.pdf"):
+    pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
+    pdf = Canvas(filename, pagesize=pagesize)
+    pdf.setAuthor('placecardboardgenerate.py')
+    pdf.setSubject('wedding placecards')
+    pdf.setTitle('Placecards for Wedding Reception')
+    pdf.setKeywords(('wedding', 'placecards'))
+
+    (page_width, page_height) = pagesize
+
+    cardsPerRow=2
+    rowsPerPage=3
+    
+    horizontal_offset = page_width / cardsPerRow
+    vertical_offset = page_height / rowsPerPage 
+
+
+    groupedCards = group_cards(cards, cardsPerRow, rowsPerPage)
+    for (pageNumber,pageOfCards) in enumerate(groupedCards):
+        for (rowNumber,rowOfCards) in enumerate(pageOfCards):
+            for (columnNumber,card) in enumerate(rowOfCards):
+                x_offset = columnNumber * horizontal_offset + 30
+                y_offset = (rowsPerPage - 1 - rowNumber) * vertical_offset + 50
+
+                pdf.drawInlineImage(card.image, x_offset, y_offset)
+        pdf.drawCentredString(page_width/2.0,20,"front of page %i" % pageNumber)
+        pdf.showPage()
+        for (rowNumber,rowOfCards) in enumerate(pageOfCards):
+            for (columnNumber,card) in enumerate(rowOfCards):
+                x_offset = (cardsPerRow - 1 - columnNumber) * horizontal_offset + 30
+                y_offset = (rowsPerPage - 1 - rowNumber) * vertical_offset + 50
+
+                if card.table_name is not None:
+                    # centered text needs better alignment
+                    pdf.drawCentredString(x_offset + (horizontal_offset/2.0), y_offset + (vertical_offset / 2.0),str(card.table_name))
+                pdf.drawString(x_offset + 10, y_offset + 10,str(card.position))
+        pdf.drawCentredString(page_width/2.0,20,"back of page %i" % pageNumber)
+        pdf.showPage()
+
+    pdf.save()
+
+
+def group_cards(cards, cardsPerRow, rowsPerPage):
+    pages = []
+    page = []
+    row = []
+    for card in cards:
+        row.append(card)
+        if len(row) == cardsPerRow:
+            page.append(row)
+            row = []
+            if len(page) == rowsPerPage:
+                pages.append(page)
+                page = []
+    return pages
+
 
 
 #################
@@ -119,7 +180,7 @@ print "cardWidthPixels: %i" % cardWidthPixels
 #################
 ## WORK
 
-people = parse_people(invitation_list_name, placecard_name_column_name='Party_Name')
+people = parse_people(invitation_list_name, placecard_name_column_name='Party_Name', table_name_column_name='Group')#FIXME use correct column names
 print "people count: %i" % len(people)
 
 areas = generate_printing_areas(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels)
@@ -133,3 +194,5 @@ im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
 cards = generate_cards(usable_areas, people, font)
 print "cards count: %i" % len(cards)
+
+generate_pages(cards)
