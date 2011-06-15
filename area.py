@@ -5,6 +5,7 @@ class Area:
         self.lowerLeftPoint = (upperLeftPoint[0], upperLeftPoint[1]+ height)
         self.lowerRightPoint = (upperLeftPoint[0] + width, upperLeftPoint[1] + height)
         self.corners = ( self.upperLeftPoint, self.upperRightPoint, self.lowerLeftPoint, self.lowerRightPoint)
+        self.box = (self.upperLeftPoint[0],self.upperRightPoint[1], self.lowerRightPoint[0], self.lowerRightPoint[1])
         self.height = height
         self.width = width
     

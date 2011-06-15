@@ -4,6 +4,9 @@ from area import Area
 import Image, ImageDraw, ImageFont
 import csv
 
+#################
+## FUNCTIONS
+
 def parse_people(file_name,
                  accepted_column_name ="RSVP",
                  accepted_value="Accepted",
@@ -23,59 +26,70 @@ def parse_people(file_name,
     people.sort()
     return people
 
+def generate_cards(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels):
+    cards = []
+    for i in range(verticalCardsCount):
+        for j in range(horizontalCardsCount):
+            point = (j * cardWidthPixels, i * cardHeightPixels)
+            cards.append(Area(point, cardHeightPixels, cardWidthPixels))
+    return cards
 
-people = parse_people('invitationlist.csv', placecard_name_column_name='Party_Name')
-print "people count: %i" % len(people)
+def filter_usable_cards(cards, *unusableAreas):
+    if len(unusableAreas) <= 0:
+        return cards
+    else:
+        filtered_cards =  filter(lambda a: not a.intersects(unusableAreas[0]), cards)
+        return filter_usable_cards(filtered_cards, *unusableAreas[1:])
+
+
+#################
+## PARAMETERS
 
 verticalCardsCount = 15
 horizontalCardsCount = 15
-
-totalCardsCount = verticalCardsCount * horizontalCardsCount
-
-print totalCardsCount
 
 cardHeight = 2
 cardWidth = 3
 spaceBetweenCards = 0.125
 
-oim = Image.open("picture.jpg")
+invitation_list_name = 'invitationlist.csv'
+picture_name = 'picture.jpg'
+
+areaOfBrideAndGroom = Area( (765, 1610) , 740, 330)
+print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
+
+#################
+## INTERMEDIATE VALUES
+
+oim = Image.open(picture_name)
 im = oim.convert("L") 
 
-pictureHeight = im.size[1]
-pictureWidth = im.size[0]
-
-#(0,0) is upper left corner of picture
-unusedArea = Area( (765, 1610) , 740, 330)
-
-print "unusedArea: %s " % unusedArea
-
+pictureWidth, pictureHeight = im.size
 
 cardHeightPixels = pictureHeight / verticalCardsCount
 cardWidthPixels = pictureWidth / horizontalCardsCount
-
-print "cardHeightPixels: %f" % cardHeightPixels
-print "cardWidthPixels: %f" % cardWidthPixels
-
-cards = []
-for i in range(verticalCardsCount):
-    for j in range(horizontalCardsCount):
-        point = (j * cardWidthPixels, i * cardHeightPixels)
-        cards.append(Area(point, cardHeightPixels, cardWidthPixels))
-print len(cards)
+print "cardHeightPixels: %i" % cardHeightPixels
+print "cardWidthPixels: %i" % cardWidthPixels
 
 
-printableCards = filter(lambda a: not a.intersects(unusedArea), cards)
-print len(printableCards)
+#################
+## WORK
 
-ignoredCards =  filter(lambda a: a.intersects(unusedArea), cards)
+people = parse_people(invitation_list_name, placecard_name_column_name='Party_Name')
+print "people count: %i" % len(people)
 
-unusedAreaPicture = im.crop((unusedArea.upperLeftPoint[0],unusedArea.upperRightPoint[1], unusedArea.lowerRightPoint[0], unusedArea.lowerRightPoint[1]))
-unusedAreaPicture.save("tmp/nocardarea.jpg", "JPEG")
+cards = generate_cards(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels)
+print "cards count: %i" % len(cards)
+
+usable_cards = filter_usable_cards(cards, areaOfBrideAndGroom)
+print "usable cards count: %i" % len(usable_cards)
+
+
+im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
 font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
-for (i,card) in enumerate(printableCards):
-    box = (card.upperLeftPoint[0],card.upperRightPoint[1], card.lowerRightPoint[0], card.lowerRightPoint[1])
-    part = im.crop(box)
+for (i,card) in enumerate(usable_cards):
+    part = im.crop(card.box)
     total = 0
     count = 0
     for p in part.getdata():
