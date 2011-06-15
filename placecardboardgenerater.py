@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from area import Area
+from card import Card
 import Image, ImageDraw, ImageFont
 import csv
 
@@ -43,6 +44,39 @@ def filter_usable_areas(areas, *unusableAreas):
         filtered_areas =  filter(lambda a: not a[1].intersects(unusableAreas[0]), areas)
         return filter_usable_areas(filtered_areas, *unusableAreas[1:])
 
+def generate_cards(areas, people, font):
+    extended_people = people + ( (len(areas) - len(people)) * [None])
+    cards = []
+    for (parea,person) in zip(areas, extended_people):
+        position,area = parea
+        part = im.crop(area.box)
+        name = None
+        table_name = None
+        if person is not None:
+            name,table_name = person 
+            add_name_to_image(part, name, font)
+        part.save("tmp/part%04i.jpg" % position, "JPEG")
+        cards.append(Card(position,part,name, table_name))
+    return cards
+
+
+def add_name_to_image(image, name, font):
+       draw = ImageDraw.Draw(image)
+       (w,h) = draw.textsize(name, font=font)
+       pw = cardWidthPixels/2 - w/2
+       ph = cardHeightPixels/2 - h/2
+       draw.text((pw,ph), name, font=font, fill=determine_font_color(image))
+       del draw
+                
+def determine_font_color(image):
+    pixel_data = list(image.getdata())
+    avg = sum(pixel_data) / len(pixel_data)
+    if avg > 127:
+        return   0 #BLACK
+    else:
+        return 255 #WHITE 
+    
+
 
 #################
 ## PARAMETERS
@@ -59,6 +93,8 @@ picture_name = 'picture.jpg'
 
 areaOfBrideAndGroom = Area( (765, 1610) , 740, 330)
 print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
+
+font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
 
 #################
 ## INTERMEDIATE VALUES
@@ -89,24 +125,6 @@ print "usable areas count: %i" % len(usable_areas)
 
 im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
-font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
-for (i,card) in usable_areas:
-    part = im.crop(card.box)
-    total = 0
-    count = 0
-    for p in part.getdata():
-        total+= p
-        count+= 1
-    avg = total/count
-    if avg > 127:
-        color = 0
-    else:
-        color = 255 
-    personname = "John Doe"
-    draw = ImageDraw.Draw(part)
-    (w,h) = draw.textsize(personname, font=font)
-    pw = cardWidthPixels/2 - w/2
-    ph = cardHeightPixels/2 - h/2
-    draw.text((pw,ph), personname, font=font, fill=color)
-    del draw
-    part.save("tmp/part%04i.jpg" % i, "JPEG")
+cards = generate_cards(usable_areas, people, font)
+print "cards count: %i" % len(cards)
+
