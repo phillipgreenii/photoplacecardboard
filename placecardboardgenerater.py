@@ -161,7 +161,7 @@ picture_name = 'picture.jpg'
 areaOfBrideAndGroom = Area( (765, 1610) , 740, 330)
 print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
 
-font = ImageFont.truetype('/Library/Fonts/Arial.ttf', 20)
+font = ImageFont.truetype('/usr/share/fonts/truetype/msttcorefonts/arial.ttf', 20)
 
 #################
 ## INTERMEDIATE VALUES
