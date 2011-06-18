@@ -64,10 +64,10 @@ def generate_cards(areas, people, font):
         if person is not None:
             name =  person.placecard_name
             table_name = person.table_name
-            add_name_to_image(part, name, font)
+        #    add_name_to_image(part, name, font)
         imageName = "tmp/part%04i.jpg" % position
         part.save(imageName, "JPEG") 
-        cards.append(Card(position,imageName,name, table_name))
+        cards.append(Card(position,part.size,imageName,name, table_name))
     return cards
 
 
@@ -112,6 +112,8 @@ def generate_pages(cards, filename="placecards.pdf"):
                 y_offset = (rowsPerPage - 1 - rowNumber) * vertical_offset + 50
 
                 pdf.drawInlineImage(card.image, x_offset, y_offset)
+                if card.name is not None:
+                    pdf.drawCentredString(x_offset + card.size[0]/2.0,y_offset + card.size[1]/2.0, card.name)
         pdf.drawCentredString(page_width/2.0,20,"front of page %i" % pageNumber)
         pdf.showPage()
         for (rowNumber,rowOfCards) in enumerate(pageOfCards):
