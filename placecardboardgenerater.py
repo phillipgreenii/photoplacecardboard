@@ -3,7 +3,7 @@
 from area import Area
 from card import Card
 from person import Person
-import Image, ImageDraw, ImageFont
+import Image
 import csv
 
 from reportlab.pdfgen.canvas import Canvas
@@ -53,7 +53,7 @@ def filter_usable_areas(areas, *unusableAreas):
         filtered_areas =  filter(lambda a: not a[1].intersects(unusableAreas[0]), areas)
         return filter_usable_areas(filtered_areas, *unusableAreas[1:])
 
-def generate_cards(areas, people, font):
+def generate_cards(areas, people):
     extended_people = people + ( (len(areas) - len(people)) * [None])
     cards = []
     for (parea,person) in zip(areas, extended_people):
@@ -64,29 +64,11 @@ def generate_cards(areas, people, font):
         if person is not None:
             name =  person.placecard_name
             table_name = person.table_name
-        #    add_name_to_image(part, name, font)
         imageName = "tmp/part%04i.jpg" % position
         part.save(imageName, "JPEG") 
         cards.append(Card(position,part.size,imageName,name, table_name))
     return cards
 
-
-def add_name_to_image(image, name, font):
-       draw = ImageDraw.Draw(image)
-       (w,h) = draw.textsize(name, font=font)
-       pw = cardWidthPixels/2 - w/2
-       ph = cardHeightPixels/2 - h/2
-       draw.text((pw,ph), name, font=font, fill=determine_font_color(image))
-       del draw
-                
-def determine_font_color(image):
-    pixel_data = list(image.getdata())
-    avg = sum(pixel_data) / len(pixel_data)
-    if avg > 127:
-        return   0 #BLACK
-    else:
-        return 255 #WHITE 
-    
 def generate_pages(cards, filename="placecards.pdf"):
     pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
     pdf = Canvas(filename, pagesize=pagesize)
@@ -163,8 +145,6 @@ picture_name = 'picture.jpg'
 areaOfBrideAndGroom = Area( (765, 1610) , 740, 330)
 print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
 
-font = ImageFont.truetype('/usr/share/fonts/truetype/msttcorefonts/arial.ttf', 20)
-
 #################
 ## INTERMEDIATE VALUES
 
@@ -194,7 +174,7 @@ print "usable areas count: %i" % len(usable_areas)
 
 im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 
-cards = generate_cards(usable_areas, people, font)
+cards = generate_cards(usable_areas, people)
 print "cards count: %i" % len(cards)
 
 generate_pages(cards)
