@@ -20,13 +20,21 @@ class CardPrinter:
                   (self.page_height - self.card_height) - (self.y_margin + (self.y_offset * row_index)))
         # print background image
         canvas.drawInlineImage(card.image, card_x, card_y, width = self.card_width, height = self.card_height)
+        # crop edge
+        canvas.saveState()
+        canvas.setStrokeColorRGB(1,1,1)
+        canvas.setLineWidth(0.125 * pagesizes.inch)
+        canvas.rect(card_x, card_y, self.card_width, self.card_height)
+        canvas.restoreState()
         # add name, if it exists
         if card.name is not None:
             canvas.drawCentredString(card_x + self.card_width/2.0,card_y + self.card_height/2.0, card.name)
         # add border
+        canvas.saveState()
         canvas.setStrokeColorRGB(0,0,0)
         canvas.rect(card_x, card_y, self.card_width, self.card_height)
-
+        canvas.restoreState()
+        
     def print_on_back_page(self, canvas, card, row_index, column_index):
         (card_x, card_y) = \
                  ((self.page_width - self.card_width) - (self.x_margin + (self.x_offset * column_index)),\
