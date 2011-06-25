@@ -113,6 +113,11 @@ def group_cards(cards, cardsPerRow, rowsPerPage):
             if len(page) == rowsPerPage:
                 pages.append(page)
                 page = []
+    # add left overs
+    if len(row) > 0:
+        page.append(row)
+    if len(page) > 0:
+        pages.append(page)
     return pages
 
 def generate_key(verticalCardsCount,horizontalCardsCount,cards, filename="key.pdf", page_margins = 4 * (0.5 * pagesizes.inch, )):
