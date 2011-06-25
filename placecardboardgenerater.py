@@ -3,6 +3,7 @@
 from area import Area
 from card import Card
 from person import Person
+from card_printer import CardPrinter
 import Image
 import csv
 
@@ -69,7 +70,7 @@ def generate_cards(areas, people):
         cards.append(Card(position,part.size,imageName,name, table_name))
     return cards
 
-def generate_pages(cards, filename="placecards.pdf"):
+def generate_pages(card_sizes,cards, filename="placecards.pdf"):
     pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
     pdf = Canvas(filename, pagesize=pagesize)
     pdf.setAuthor('placecardboardgenerate.py')
@@ -77,37 +78,24 @@ def generate_pages(cards, filename="placecards.pdf"):
     pdf.setTitle('Placecards for Wedding Reception')
     pdf.setKeywords(('wedding', 'placecards'))
 
+    adjusted_card_sizes = (card_sizes[0] * pagesizes.inch, card_sizes[1] * pagesizes.inch)
+    card_printer = CardPrinter(pagesize,adjusted_card_sizes)
+
+    (cardsPerRow,rowsPerPage) = (card_printer.cards_per_row, card_printer.cards_per_column)
+
     (page_width, page_height) = pagesize
 
-    cardsPerRow=2
-    rowsPerPage=3
-    
-    horizontal_offset = page_width / cardsPerRow
-    vertical_offset = page_height / rowsPerPage 
-
-
     groupedCards = group_cards(cards, cardsPerRow, rowsPerPage)
-    for (pageNumber,pageOfCards) in enumerate(groupedCards):
-        for (rowNumber,rowOfCards) in enumerate(pageOfCards):
-            for (columnNumber,card) in enumerate(rowOfCards):
-                x_offset = columnNumber * horizontal_offset + 30
-                y_offset = (rowsPerPage - 1 - rowNumber) * vertical_offset + 50
-
-                pdf.drawInlineImage(card.image, x_offset, y_offset)
-                if card.name is not None:
-                    pdf.drawCentredString(x_offset + card.size[0]/2.0,y_offset + card.size[1]/2.0, card.name)
-        pdf.drawCentredString(page_width/2.0,20,"front of page %i" % pageNumber)
+    for (page_index,pageOfCards) in enumerate(groupedCards):
+        for (row_index,rowOfCards) in enumerate(pageOfCards):
+            for (column_index,card) in enumerate(rowOfCards):
+                card_printer.print_on_front_page(pdf,card,row_index, column_index)
+        pdf.drawCentredString(page_width/2.0,20,"front of page %i" % (page_index + 1))
         pdf.showPage()
-        for (rowNumber,rowOfCards) in enumerate(pageOfCards):
-            for (columnNumber,card) in enumerate(rowOfCards):
-                x_offset = (cardsPerRow - 1 - columnNumber) * horizontal_offset + 30
-                y_offset = (rowsPerPage - 1 - rowNumber) * vertical_offset + 50
-
-                if card.table_name is not None:
-                    # centered text needs better alignment
-                    pdf.drawCentredString(x_offset + (horizontal_offset/2.0), y_offset + (vertical_offset / 2.0),str(card.table_name))
-                pdf.drawString(x_offset + 10, y_offset + 10,str(card.position))
-        pdf.drawCentredString(page_width/2.0,20,"back of page %i" % pageNumber)
+        for (row_index,rowOfCards) in enumerate(pageOfCards):
+            for (column_index,card) in enumerate(rowOfCards):
+                card_printer.print_on_back_page(pdf,card,row_index, column_index)                
+        pdf.drawCentredString(page_width/2.0,20,"back of page %i" % (page_index + 1))
         pdf.showPage()
 
     pdf.save()
@@ -132,11 +120,13 @@ def group_cards(cards, cardsPerRow, rowsPerPage):
 #################
 ## PARAMETERS
 
+posterWidth, posterHeight = (36,24) #inches
+print "posterHeight: %i" % posterHeight
+print "posterWidth %i" % posterWidth
+
 verticalCardsCount = 15
 horizontalCardsCount = 15
 
-cardHeight = 2
-cardWidth = 3
 spaceBetweenCards = 0.125
 
 invitation_list_name = 'invitationlist.csv'
@@ -151,10 +141,22 @@ print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
 oim = Image.open(picture_name)
 im = oim.convert("L") 
 
-pictureWidth, pictureHeight = im.size
+pictureWidthPixels, pictureHeightPixels = im.size
+print "pictureHeightPixels: %i" % pictureHeightPixels
+print "pictureWidthPixels: %i" % pictureWidthPixels
 
-cardHeightPixels = pictureHeight / verticalCardsCount
-cardWidthPixels = pictureWidth / horizontalCardsCount
+ppi = ((pictureWidthPixels / posterWidth) * (pictureHeightPixels / posterHeight))**(0.5)
+
+print "PPI: %0.3f" % ppi
+
+
+cardHeight = 1.0 * posterHeight / verticalCardsCount
+cardWidth = 1.0 * posterWidth / horizontalCardsCount
+print "cardHeight: %0.3f" % cardHeight
+print "cardWidth: %0.3f" % cardWidth
+
+cardHeightPixels = pictureHeightPixels / verticalCardsCount
+cardWidthPixels = pictureWidthPixels / horizontalCardsCount
 print "cardHeightPixels: %i" % cardHeightPixels
 print "cardWidthPixels: %i" % cardWidthPixels
 
@@ -177,4 +179,4 @@ im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 cards = generate_cards(usable_areas, people)
 print "cards count: %i" % len(cards)
 
-generate_pages(cards)
+generate_pages((cardWidth, cardHeight), cards)
