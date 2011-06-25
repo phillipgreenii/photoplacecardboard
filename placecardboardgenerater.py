@@ -115,6 +115,50 @@ def group_cards(cards, cardsPerRow, rowsPerPage):
                 page = []
     return pages
 
+def generate_key(verticalCardsCount,horizontalCardsCount,cards, filename="key.pdf", page_margins = 4 * (0.5 * pagesizes.inch, )):
+    (page_margin_top, page_margin_left, page_margin_bottom, page_margin_right) = page_margins
+    padding = 0.0625 * pagesizes.inch
+
+    spaces = (verticalCardsCount * horizontalCardsCount) * [None,]
+    for card in cards:
+        spaces[card.position] = card
+
+    pagesize = pagesizes.landscape( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
+    pdf = Canvas(filename, pagesize=pagesize)
+    pdf.setAuthor('placecardboardgenerate.py')
+    pdf.setSubject('wedding placecards key')
+    pdf.setTitle('Key for Placecards for Wedding Reception')
+    pdf.setKeywords(('wedding', 'placecards'))
+
+    (page_width, page_height) = pagesize
+
+    pdf.drawCentredString(page_width/2.0,20,"key of place cards")
+
+    thumbnail_width = ((page_width - page_margin_left - page_margin_right) - (padding * (horizontalCardsCount - 1))) / horizontalCardsCount
+    thumbnail_height = ((page_height - page_margin_top - page_margin_bottom) - (padding * (verticalCardsCount - 1))) / verticalCardsCount
+
+
+    x_margin = page_margin_left
+    x_offset = thumbnail_width + padding
+    y_margin = page_margin_top
+    y_offset = thumbnail_height + padding
+
+
+    for row_index in range(verticalCardsCount):
+        for column_index in range(horizontalCardsCount):
+            position = (row_index * horizontalCardsCount) +  column_index
+            card = spaces[position]
+            (card_x, card_y) = \
+                 (x_margin + (x_offset * column_index),\
+                  (page_height - thumbnail_height) - (y_margin + (y_offset * row_index)))
+            
+            if card is not None:
+                pdf.drawInlineImage(card.image, card_x, card_y, width = thumbnail_width, height = thumbnail_height)
+                pdf.drawCentredString(card_x + thumbnail_width/2.0,card_y + thumbnail_height/2.0, str(card.position))
+    
+    pdf.showPage()
+    pdf.save()
+
 
 
 #################
@@ -180,3 +224,4 @@ cards = generate_cards(usable_areas, people)
 print "cards count: %i" % len(cards)
 
 generate_pages((cardWidth, cardHeight), cards)
+generate_key(verticalCardsCount,horizontalCardsCount,cards)

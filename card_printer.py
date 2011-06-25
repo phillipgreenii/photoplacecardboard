@@ -11,7 +11,6 @@ class CardPrinter:
                               math.floor((self.page_height- page_margin_top - page_margin_bottom) / (self.card_height + minimum_card_spacing)))
         self.x_margin = page_margin_left
         self.x_offset = self.card_width + minimum_card_spacing
-        #TODO pages are printed from the bottom up, so i need to swtich logic here
         self.y_margin = page_margin_top
         self.y_offset = self.card_height + minimum_card_spacing
         
