@@ -11,8 +11,16 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib import pagesizes
 
 
+
 #################
 ## FUNCTIONS
+
+def load_custom_font(font_name, font_location):
+    from reportlab.lib.fonts import addMapping
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    pdfmetrics.registerFont(TTFont(font_name, font_location))
+    addMapping(font_name, 0, 0, font_name)
 
 def parse_people(file_name,
                  first_name_column_name = "First_Name",
@@ -70,14 +78,16 @@ def generate_cards(areas, people):
         cards.append(Card(position,part.size,imageName,name, table_name))
     return cards
 
-def generate_pages(card_sizes,cards, filename="placecards.pdf"):
+def generate_pages(card_sizes,cards, filename="placecards.pdf", custom_font = None):
     pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
     pdf = Canvas(filename, pagesize=pagesize)
     pdf.setAuthor('placecardboardgenerate.py')
     pdf.setSubject('wedding placecards')
     pdf.setTitle('Placecards for Wedding Reception')
     pdf.setKeywords(('wedding', 'placecards'))
-
+    if custom_font is not None:
+        pdf.setFont(custom_font,14)#FIXME don't hardcode font size
+            
     adjusted_card_sizes = (card_sizes[0] * pagesizes.inch, card_sizes[1] * pagesizes.inch)
     card_printer = CardPrinter(pagesize,adjusted_card_sizes)
 
@@ -169,6 +179,8 @@ def generate_key(verticalCardsCount,horizontalCardsCount,cards, filename="key.pd
 #################
 ## PARAMETERS
 
+custom_font_location = '/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf'
+
 posterWidth, posterHeight = (36,24) #inches
 print "posterHeight: %i" % posterHeight
 print "posterWidth %i" % posterWidth
@@ -187,6 +199,12 @@ print "areaOfBrideAndGroom: %s " % areaOfBrideAndGroom
 #################
 ## INTERMEDIATE VALUES
 
+if custom_font_location is not None:
+    custom_font_name = 'CardFont'
+    load_custom_font(custom_font_name, custom_font_location)    
+else:
+    custom_font_name = None
+    
 oim = Image.open(picture_name)
 im = oim.convert("L") 
 
@@ -228,5 +246,5 @@ im.crop(areaOfBrideAndGroom.box).save("tmp/brideAndGroomArea.jpg", "JPEG")
 cards = generate_cards(usable_areas, people)
 print "cards count: %i" % len(cards)
 
-generate_pages((cardWidth, cardHeight), cards)
+generate_pages((cardWidth, cardHeight), cards, custom_font=custom_font_name)
 generate_key(verticalCardsCount,horizontalCardsCount,cards)
