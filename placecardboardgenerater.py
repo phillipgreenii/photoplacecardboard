@@ -70,13 +70,26 @@ def generate_cards(areas, people):
         part = im.crop(area.box)
         name = None
         table_name = None
+        shade = determine_average_shade(part)
         if person is not None:
             name =  person.placecard_name
             table_name = person.table_name
         imageName = "tmp/part%04i.jpg" % position
         part.save(imageName, "JPEG") 
-        cards.append(Card(position,part.size,imageName,name, table_name))
+        cards.append(Card(position,part.size,imageName,shade,name, table_name))
     return cards
+
+def determine_average_shade(image):
+    total = 0
+    count = 0
+    for p in image.getdata():
+        total+= p
+        count+= 1
+    avg = total/count
+    if avg > 127:
+        return "light"
+    else:
+        return "dark"
 
 def generate_pages(card_sizes,cards, filename="placecards.pdf", custom_font = None):
     pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))

@@ -28,7 +28,13 @@ class CardPrinter:
         canvas.restoreState()
         # add name, if it exists
         if card.name is not None:
+            canvas.saveState()
+            if card.shade == "dark":
+                canvas.setFillColorRGB(1,1,1)
+            elif card.shade == "light":
+                canvas.setFillColorRGB(0,0,0)
             canvas.drawCentredString(card_x + self.card_width/2.0,card_y + self.card_height/2.0, card.name)
+            canvas.restoreState()
         # add border
         canvas.saveState()
         canvas.setStrokeColorRGB(0,0,0)

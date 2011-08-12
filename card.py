@@ -1,8 +1,9 @@
 class Card:
-    def __init__(self, position, size, image, name = None, table_name = None):
+    def __init__(self, position, size, image, shade = None, name = None, table_name = None):
         self.position = position
         self.image = image
         self.size = size
+        self.shade = shade
         self.name = name
         self.table_name = table_name
         
