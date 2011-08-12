@@ -27,9 +27,9 @@ def parse_people(file_name,
                  last_name_column_name = "Last_Name",
                  accepted_column_name ="RSVP",
                  accepted_value="Accepted",
-                 placecard_name_column_name="PlaceCard",
+                 placecard_name_column_name="EscortCard",
                  table_name_column_name="Table_Name"):
-    invitationListReader = csv.reader(open('invitationlist.csv', 'rb'))
+    invitationListReader = csv.reader(open(file_name, 'rb'))
     column_names = invitationListReader.next()
 
     first_name_column_index = column_names.index(first_name_column_name)
@@ -80,7 +80,7 @@ def generate_cards(areas, people):
 
 def generate_pages(card_sizes,cards, filename="placecards.pdf", custom_font = None):
     pagesize = pagesizes.portrait( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
-    pdf = Canvas(filename, pagesize=pagesize)
+    pdf = Canvas(filename, pagesize=pagesize,pdfVersion=(1,4))
     pdf.setAuthor('placecardboardgenerate.py')
     pdf.setSubject('wedding placecards')
     pdf.setTitle('Placecards for Wedding Reception')
@@ -97,11 +97,15 @@ def generate_pages(card_sizes,cards, filename="placecards.pdf", custom_font = No
 
     groupedCards = group_cards(cards, cardsPerRow, rowsPerPage)
     for (page_index,pageOfCards) in enumerate(groupedCards):
+        if custom_font is not None:
+            pdf.setFont(custom_font,14)#FIXME don't hardcode font size
         for (row_index,rowOfCards) in enumerate(pageOfCards):
             for (column_index,card) in enumerate(rowOfCards):
                 card_printer.print_on_front_page(pdf,card,row_index, column_index)
         pdf.drawCentredString(page_width/2.0,20,"front of page %i" % (page_index + 1))
         pdf.showPage()
+        if custom_font is not None:
+            pdf.setFont(custom_font,14)#FIXME don't hardcode font size
         for (row_index,rowOfCards) in enumerate(pageOfCards):
             for (column_index,card) in enumerate(rowOfCards):
                 card_printer.print_on_back_page(pdf,card,row_index, column_index)                
@@ -139,7 +143,7 @@ def generate_key(verticalCardsCount,horizontalCardsCount,cards, filename="key.pd
         spaces[card.position] = card
 
     pagesize = pagesizes.landscape( ( 8.5 * pagesizes.inch, 11 * pagesizes.inch))
-    pdf = Canvas(filename, pagesize=pagesize)
+    pdf = Canvas(filename, pagesize=pagesize, pdfVersion=(1,4))
     pdf.setAuthor('placecardboardgenerate.py')
     pdf.setSubject('wedding placecards key')
     pdf.setTitle('Key for Placecards for Wedding Reception')
@@ -168,7 +172,7 @@ def generate_key(verticalCardsCount,horizontalCardsCount,cards, filename="key.pd
                   (page_height - thumbnail_height) - (y_margin + (y_offset * row_index)))
             
             if card is not None:
-                pdf.drawInlineImage(card.image, card_x, card_y, width = thumbnail_width, height = thumbnail_height)
+                pdf.drawImage(card.image, card_x, card_y, width = thumbnail_width, height = thumbnail_height)
                 pdf.drawCentredString(card_x + thumbnail_width/2.0,card_y + thumbnail_height/2.0, str(card.position))
     
     pdf.showPage()
@@ -190,7 +194,7 @@ horizontalCardsCount = 15
 
 spaceBetweenCards = 0.125
 
-invitation_list_name = 'invitationlist.csv'
+invitation_list_name = 'invitationlist-final.csv'
 picture_name = 'picture.jpg'
 
 areaOfBrideAndGroom = Area( (765, 1610) , 740, 330)
@@ -231,7 +235,7 @@ print "cardWidthPixels: %i" % cardWidthPixels
 #################
 ## WORK
 
-people = parse_people(invitation_list_name, placecard_name_column_name='Party_Name', table_name_column_name='Group')#FIXME use correct column names
+people = parse_people(invitation_list_name)
 print "people count: %i" % len(people)
 
 areas = generate_printing_areas(verticalCardsCount, horizontalCardsCount, cardHeightPixels, cardWidthPixels)

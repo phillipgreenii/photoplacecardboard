@@ -19,7 +19,7 @@ class CardPrinter:
                  (self.x_margin + (self.x_offset * column_index),\
                   (self.page_height - self.card_height) - (self.y_margin + (self.y_offset * row_index)))
         # print background image
-        canvas.drawInlineImage(card.image, card_x, card_y, width = self.card_width, height = self.card_height)
+        canvas.drawImage(card.image, card_x, card_y, width = self.card_width, height = self.card_height)
         # crop edge
         canvas.saveState()
         canvas.setStrokeColorRGB(1,1,1)
