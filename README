@@ -3,3 +3,5 @@ This projects consists of the python code I used to generate the placecard board
 Pre-reqs:
 PIL: http://www.pythonware.com/products/pil/
 ReportLab: http://www.reportlab.com/ftp/
+
+The idea came from https://sites.google.com/site/januarybride/diy
